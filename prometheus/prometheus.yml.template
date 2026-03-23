@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'vm-b'
+    static_configs:
+      - targets: ['VM_B_IP_PLACEHOLDER:9100']
+        labels:
+          alias: 'VM-B'
+
+  - job_name: 'vm-c'
+    static_configs:
+      - targets: ['VM_C_IP_PLACEHOLDER:9100']
+        labels:
+          alias: 'VM-C'
