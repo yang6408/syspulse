@@ -33,20 +33,30 @@ router.get('/current', async (req, res) => {
   }
 });
 
-// 이력 조회 (DB에서)
+// 이력 조회 (range 또는 시작/끝 시간)
 router.get('/history', async (req, res) => {
   try {
-    const { vm_id, range = '1h' } = req.query;
+    const { vm_id, range, start, end } = req.query;
 
-    const intervalMap = { '1h': '1 hour', '6h': '6 hours', '24h': '24 hours' };
-    const interval = intervalMap[range] || '1 hour';
+    let whereClause = '';
+
+    if (start && end) {
+      // 직접 입력한 시작/끝 시간으로 조회
+      whereClause = `AND collected_at >= '${start}'::timestamptz
+                     AND collected_at <= '${end}'::timestamptz`;
+    } else {
+      // 버튼 범위로 조회
+      const intervalMap = { '1h': '1 hour', '3h': '3 hours', '6h': '6 hours', '12h': '12 hours', '24h': '24 hours' };
+      const interval = intervalMap[range] || '1 hour';
+      whereClause = `AND collected_at > now() - interval '${interval}'`;
+    }
 
     const result = await db.query(
       `SELECT cpu, memory, disk, network,
               to_char(collected_at AT TIME ZONE 'Asia/Seoul', 'HH24:MI:SS') as time
        FROM metric_history
        WHERE vm_id = $1
-         AND collected_at > now() - interval '${interval}'
+       ${whereClause}
        ORDER BY collected_at ASC`,
       [vm_id]
     );

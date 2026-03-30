@@ -6,13 +6,31 @@ import CpuChart from '../components/charts/CpuChart'
 import MemoryChart from '../components/charts/MemoryChart'
 import DiskChart from '../components/charts/DiskChart'
 import NetworkChart from '../components/charts/NetworkChart'
+import MetricFilter from '../components/filters/MetricFilter'
+import TimeRangePicker from '../components/filters/TimeRangePicker'
 
 export default function Dashboard() {
   const { vms } = useVms()
   const [selectedVm, setSelectedVm] = useState(null)
-  const { metrics, history } = useMetrics(selectedVm?.local_ip, selectedVm?.id)
+  const [range, setRange] = useState('1h')
+  const [customRange, setCustomRange] = useState(null)
+  const [filters, setFilters] = useState({
+    cpu: true, memory: true, disk: true, network: true,
+  })
+  const { metrics, history } = useMetrics(
+    selectedVm?.local_ip, selectedVm?.id, range, customRange
+  )
 
   const now = new Date().toLocaleString('ko-KR')
+
+  const handleRangeChange = (value) => {
+    setRange(value)
+    setCustomRange(null)
+  }
+
+  const handleCustomRange = (start, end) => {
+    setCustomRange({ start, end })
+  }
 
   return (
     <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
@@ -33,7 +51,19 @@ export default function Dashboard() {
               </span>
             )}
           </div>
-          <span className="text-xs text-gray-500">{now}</span>
+          <div className="flex items-center gap-4">
+            {selectedVm && (
+              <MetricFilter filters={filters} onChange={setFilters}/>
+            )}
+            {selectedVm && (
+              <TimeRangePicker
+                range={range}
+                onRangeChange={handleRangeChange}
+                onCustomRange={handleCustomRange}
+              />
+            )}
+            <span className="text-xs text-gray-500">{now}</span>
+          </div>
         </header>
 
         {/* 메인 콘텐츠 */}
@@ -51,12 +81,14 @@ export default function Dashboard() {
               {/* 현재값 요약 카드 */}
               <div className="grid grid-cols-4 gap-3 mb-5">
                 {[
-                  { label: 'CPU', value: metrics?.cpu, unit: '%', color: 'text-blue-400' },
-                  { label: '메모리', value: metrics?.memory, unit: '%', color: 'text-emerald-400' },
-                  { label: '디스크', value: metrics?.disk, unit: '%', color: 'text-amber-400' },
-                  { label: '네트워크', value: metrics?.network, unit: 'B/s', color: 'text-purple-400' },
+                  { label: 'CPU', value: metrics?.cpu, unit: '%', color: 'text-blue-400', key: 'cpu' },
+                  { label: '메모리', value: metrics?.memory, unit: '%', color: 'text-emerald-400', key: 'memory' },
+                  { label: '디스크', value: metrics?.disk, unit: '%', color: 'text-amber-400', key: 'disk' },
+                  { label: '네트워크', value: metrics?.network, unit: 'B/s', color: 'text-purple-400', key: 'network' },
                 ].map(item => (
-                  <div key={item.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                  <div key={item.label}
+                    className={`bg-gray-900 border rounded-xl p-4 transition-all
+                      ${filters[item.key] ? 'border-gray-800' : 'border-gray-900 opacity-40'}`}>
                     <p className="text-xs text-gray-500 mb-1">{item.label}</p>
                     <p className={`text-2xl font-bold ${item.color}`}>
                       {item.value ?? '-'}
@@ -68,10 +100,18 @@ export default function Dashboard() {
 
               {/* 차트 그리드 */}
               <div className="grid grid-cols-2 gap-4">
-                <CpuChart data={history.map(h => ({ time: h.time, value: parseFloat(h.cpu) }))}/>
-                <MemoryChart data={history.map(h => ({ time: h.time, value: parseFloat(h.memory) }))}/>
-                <DiskChart value={metrics?.disk}/>
-                <NetworkChart data={history.map(h => ({ time: h.time, value: parseFloat(h.network) }))}/>
+                {filters.cpu && (
+                  <CpuChart data={history.map(h => ({ time: h.time, value: parseFloat(h.cpu) }))}/>
+                )}
+                {filters.memory && (
+                  <MemoryChart data={history.map(h => ({ time: h.time, value: parseFloat(h.memory) }))}/>
+                )}
+                {filters.disk && (
+                  <DiskChart value={metrics?.disk}/>
+                )}
+                {filters.network && (
+                  <NetworkChart data={history.map(h => ({ time: h.time, value: parseFloat(h.network) }))}/>
+                )}
               </div>
             </>
           )}

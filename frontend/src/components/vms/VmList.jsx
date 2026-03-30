@@ -18,11 +18,19 @@ export default function VmList({ vms, selectedVm, onSelect }) {
                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
           >
             <div className="flex items-center gap-2 mb-1">
+              {/* enabled → online 으로 변경 */}
               <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0
-                ${vm.enabled ? 'bg-green-400' : 'bg-red-400'}`}/>
+                ${vm.online ? 'bg-green-400' : 'bg-red-400'}`}/>
               <span className="font-medium text-sm">{vm.alias}</span>
             </div>
-            <p className="text-xs opacity-60 pl-3.5">{vm.local_ip}</p>
+            <div className="flex items-center justify-between pl-3.5">
+              <p className="text-xs opacity-60">{vm.local_ip}</p>
+              {/* 온라인/오프라인 텍스트 표시 */}
+              <span className={`text-xs font-medium
+                ${vm.online ? 'text-green-400' : 'text-red-400'}`}>
+                {vm.online ? 'Online' : 'Offline'}
+              </span>
+            </div>
           </button>
         ))}
       </div>
