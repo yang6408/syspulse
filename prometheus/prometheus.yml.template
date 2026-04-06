@@ -13,3 +13,9 @@ scrape_configs:
       - targets: ['VM_C_IP_PLACEHOLDER:9100']
         labels:
           alias: 'VM-C'
+
+  - job_name: 'vm-d'
+    static_configs:
+      - targets: ['VM_D_IP_PLACEHOLDER:9100']
+        labels:
+          alias: 'VM-D'

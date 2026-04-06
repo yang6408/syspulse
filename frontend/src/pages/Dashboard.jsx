@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import useVms from '../hooks/useVms'
 import useMetrics from '../hooks/useMetrics'
 import VmList from '../components/vms/VmList'
@@ -21,7 +21,31 @@ export default function Dashboard() {
     selectedVm?.local_ip, selectedVm?.id, range, customRange
   )
 
-  const now = new Date().toLocaleString('ko-KR')
+  // 실시간 시계
+  const [now, setNow] = useState(new Date().toLocaleString('ko-KR'))
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date().toLocaleString('ko-KR'))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  // 이전 메트릭 값 저장 (증감 표시용)
+  const prevMetrics = useRef(null)
+  const [diff, setDiff] = useState({ cpu: 0, memory: 0, disk: 0, network: 0 })
+
+  useEffect(() => {
+    if (!metrics) return
+    if (prevMetrics.current) {
+      setDiff({
+        cpu: parseFloat(metrics.cpu) - parseFloat(prevMetrics.current.cpu),
+        memory: parseFloat(metrics.memory) - parseFloat(prevMetrics.current.memory),
+        disk: parseFloat(metrics.disk) - parseFloat(prevMetrics.current.disk),
+        network: parseFloat(metrics.network) - parseFloat(prevMetrics.current.network),
+      })
+    }
+    prevMetrics.current = metrics
+  }, [metrics])
 
   const handleRangeChange = (value) => {
     setRange(value)
@@ -30,6 +54,17 @@ export default function Dashboard() {
 
   const handleCustomRange = (start, end) => {
     setCustomRange({ start, end })
+  }
+
+  // 증감 표시 컴포넌트
+  const DiffBadge = ({ value }) => {
+    if (Math.abs(value) < 0.01) return null
+    const up = value > 0
+    return (
+      <span className={`text-xs font-medium ml-1 ${up ? 'text-red-400' : 'text-emerald-400'}`}>
+        {up ? '↑' : '↓'} {Math.abs(value).toFixed(2)}
+      </span>
+    )
   }
 
   return (
@@ -62,7 +97,8 @@ export default function Dashboard() {
                 onCustomRange={handleCustomRange}
               />
             )}
-            <span className="text-xs text-gray-500">{now}</span>
+            {/* 실시간 시계 */}
+            <span className="text-xs text-gray-500 tabular-nums">{now}</span>
           </div>
         </header>
 
@@ -90,10 +126,13 @@ export default function Dashboard() {
                     className={`bg-gray-900 border rounded-xl p-4 transition-all
                       ${filters[item.key] ? 'border-gray-800' : 'border-gray-900 opacity-40'}`}>
                     <p className="text-xs text-gray-500 mb-1">{item.label}</p>
-                    <p className={`text-2xl font-bold ${item.color}`}>
-                      {item.value ?? '-'}
-                      <span className="text-xs text-gray-500 ml-1">{item.unit}</span>
-                    </p>
+                    <div className="flex items-end gap-1">
+                      <p className={`text-2xl font-bold ${item.color}`}>
+                        {item.value ?? '-'}
+                        <span className="text-xs text-gray-500 ml-1">{item.unit}</span>
+                      </p>
+                      <DiffBadge value={diff[item.key]}/>
+                    </div>
                   </div>
                 ))}
               </div>

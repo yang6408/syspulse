@@ -43,5 +43,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  vm-register:
+    image: alpine:latest
+    volumes:
+      - ./register-vms.sh:/register-vms.sh
+      - ./.env:/.env
+    network_mode: host
+    command: sh -c "apk add --no-cache bash curl && bash /register-vms.sh"
+    depends_on:
+      - backend
+    restart: "no"
+
 volumes:
   postgres_data:

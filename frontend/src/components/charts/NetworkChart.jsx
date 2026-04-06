@@ -7,7 +7,7 @@ export default function NetworkChart({ data }) {
         <h3 className="text-sm font-semibold text-gray-300">네트워크 트래픽</h3>
         <span className="text-xs text-gray-600">B/s</span>
       </div>
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={data}>
           <defs>
             <linearGradient id="netGrad" x1="0" y1="0" x2="0" y2="1">

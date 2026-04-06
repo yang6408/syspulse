@@ -7,7 +7,7 @@ export default function MemoryChart({ data }) {
         <h3 className="text-sm font-semibold text-gray-300">메모리 사용량</h3>
         <span className="text-xs text-gray-600">%</span>
       </div>
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={data}>
           <defs>
             <linearGradient id="memGrad" x1="0" y1="0" x2="0" y2="1">
