@@ -622,6 +622,13 @@ syspulse/
 | 기대 결과 | 선택한 시간 범위의 데이터가 차트에 표시 |
 | 실제 결과 | 각 범위별 데이터 정상 조회 확인 |
 
+![05test](images/05_01.png)
+![05test](images/05_02.png)
+![05test](images/05_03.png)
+![05test](images/05_04.png)
+![05test](images/05_05.png)
+![05test](images/05_06.png)
+
 #### 06 과거 데이터 저장 테스트
 
 | 항목 | 내용 |
@@ -630,6 +637,9 @@ syspulse/
 | 방법 | 브라우저 강제 새로고침 후 차트 확인 |
 | 기대 결과 | 새로고침 이전 데이터가 차트에 유지 |
 | 실제 결과 | PostgreSQL에 저장된 이력 데이터 정상 조회 확인 |
+
+![06test](images/06_01.png)
+![06test](images/06_02.png)
 
 ---
 
