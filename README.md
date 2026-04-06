@@ -268,7 +268,7 @@ Proxmox 서버
 | GET | /api/alerts | 알림 이력 목록 조회 |
 | GET | /api/alerts/rules | 알림 규칙 목록 조회 |
 
-### 3.5 메트릭 수집 알고리즘 (수도 코드)
+### 3.5 메트릭 수집 알고리즘 (슈더 코드)
  
 ```
 함수 collectMetrics():
@@ -290,7 +290,7 @@ Proxmox 서버
 setInterval(collectMetrics, 15000)
 ```
  
-### 3.6 VM 온/오프라인 감지 알고리즘 (수도 코드)
+### 3.6 VM 온/오프라인 감지 알고리즘 (슈더 코드)
  
 ```
 함수 checkVmStatus(ip):
@@ -304,7 +304,7 @@ setInterval(collectMetrics, 15000)
         return false (Offline)
 ```
  
-### 3.7 VM 등록 API 알고리즘 (수도 코드)
+### 3.7 VM 등록 API 알고리즘 (슈더 코드)
  
 ```
 함수 POST /api/vms(요청):
@@ -321,7 +321,7 @@ setInterval(collectMetrics, 15000)
  
 ---
  
-### 3.8 VM 목록 조회 API 알고리즘 (수도 코드)
+### 3.8 VM 목록 조회 API 알고리즘 (슈더 코드)
  
 ```
 함수 GET /api/vms():
@@ -336,7 +336,7 @@ setInterval(collectMetrics, 15000)
  
 ---
  
-### 3.9 실시간 메트릭 조회 API 알고리즘 (수도 코드)
+### 3.9 실시간 메트릭 조회 API 알고리즘 (슈더 코드)
  
 ```
 함수 GET /api/metrics/current(vm_ip):
@@ -356,7 +356,7 @@ setInterval(collectMetrics, 15000)
  
 ---
  
-### 3.10 메트릭 이력 조회 API 알고리즘 (수도 코드)
+### 3.10 메트릭 이력 조회 API 알고리즘 (슈더 코드)
  
 ```
 함수 GET /api/metrics/history(vm_id, range, start, end):
@@ -385,7 +385,7 @@ setInterval(collectMetrics, 15000)
  
 ---
  
-### 3.11 증감 표시 알고리즘 (수도 코드)
+### 3.11 증감 표시 알고리즘 (슈더 코드)
  
 ```
 함수 계산증감(현재값, 이전값):
@@ -410,7 +410,7 @@ useEffect():
  
 ---
  
-### 3.12 CPU 임계치 감지 알고리즘 (수도 코드)
+### 3.12 CPU 임계치 감지 알고리즘 (슈더 코드)
  
 ```
 상수 THRESHOLD = 80
@@ -430,7 +430,7 @@ useEffect():
  
 ---
  
-### 3.13 VM 자동 등록 알고리즘 (수도 코드)
+### 3.13 VM 자동 등록 알고리즘 (슈더 코드)
  
 ```
 함수 register-vms():
