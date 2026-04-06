@@ -628,6 +628,7 @@ syspulse/
 ![05test](images/05_04.png)
 ![05test](images/05_05.png)
 ![05test](images/05_06.png)
+![05test](images/05_07.png)
 
 #### 06 과거 데이터 저장 테스트
 
