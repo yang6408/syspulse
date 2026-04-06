@@ -269,7 +269,7 @@ Proxmox 서버
 | GET | /api/alerts/rules | 알림 규칙 목록 조회 |
 
 ### 3.5 메트릭 수집 알고리즘 (수도 코드)
-
+ 
 ```
 함수 collectMetrics():
     vms = DB에서 활성화된 VM 목록 조회
@@ -285,13 +285,13 @@ Proxmox 서버
         DB.insert(metric_history, vm.id, cpu, memory, disk, network)
     
     끝
-
+ 
 // 15초마다 반복 실행
 setInterval(collectMetrics, 15000)
 ```
-
+ 
 ### 3.6 VM 온/오프라인 감지 알고리즘 (수도 코드)
-
+ 
 ```
 함수 checkVmStatus(ip):
     result = Prometheus.query("up{instance=ip:9100}")
@@ -303,9 +303,158 @@ setInterval(collectMetrics, 15000)
     그 외:
         return false (Offline)
 ```
-
-### 3.7 프론트엔드 컴포넌트 구조
-
+ 
+### 3.7 VM 등록 API 알고리즘 (수도 코드)
+ 
+```
+함수 POST /api/vms(요청):
+    alias = 요청.body.alias
+    local_ip = 요청.body.local_ip
+ 
+    만약 alias가 비어있거나 local_ip가 비어있으면:
+        return 오류 응답 (400 Bad Request)
+ 
+    DB.insert(vm_targets, alias, local_ip, enabled=true)
+ 
+    return 성공 응답 ("VM 등록 완료")
+```
+ 
+---
+ 
+### 3.8 VM 목록 조회 API 알고리즘 (수도 코드)
+ 
+```
+함수 GET /api/vms():
+    vms = DB.query("SELECT * FROM vm_targets WHERE enabled = true")
+ 
+    각 vm에 대해:
+        status = checkVmStatus(vm.local_ip)
+        vm.online = status
+ 
+    return vms (온라인 상태 포함)
+```
+ 
+---
+ 
+### 3.9 실시간 메트릭 조회 API 알고리즘 (수도 코드)
+ 
+```
+함수 GET /api/metrics/current(vm_ip):
+    instance = vm_ip + ":9100"
+ 
+    cpu     = Prometheus.query("100 - avg(idle_rate) * 100")
+    memory  = Prometheus.query("(1 - avail / total) * 100")
+    disk    = Prometheus.query("avg(1 - avail / size) * 100")
+    network = Prometheus.query("sum(rate(recv_bytes[1m]))")
+ 
+    각 값에 대해:
+        만약 값이 없으면: 0으로 설정
+        그 외: 소수점 2자리로 반올림
+ 
+    return { cpu, memory, disk, network }
+```
+ 
+---
+ 
+### 3.10 메트릭 이력 조회 API 알고리즘 (수도 코드)
+ 
+```
+함수 GET /api/metrics/history(vm_id, range, start, end):
+ 
+    만약 start와 end가 존재하면:
+        조건 = "collected_at >= start AND collected_at <= end"
+    그 외:
+        interval = range에 따라 변환
+            "1h"  → "1 hour"
+            "3h"  → "3 hours"
+            "6h"  → "6 hours"
+            "12h" → "12 hours"
+            "24h" → "24 hours"
+        조건 = "collected_at > now() - interval"
+ 
+    결과 = DB.query(
+        "SELECT cpu, memory, disk, network,
+         to_char(collected_at AT TIME ZONE 'Asia/Seoul', 'HH24:MI:SS') as time
+         FROM metric_history
+         WHERE vm_id = vm_id AND 조건
+         ORDER BY collected_at ASC"
+    )
+ 
+    return 결과
+```
+ 
+---
+ 
+### 3.11 증감 표시 알고리즘 (수도 코드)
+ 
+```
+함수 계산증감(현재값, 이전값):
+    만약 이전값이 없으면:
+        return null (표시 안 함)
+ 
+    차이 = 현재값 - 이전값
+ 
+    만약 |차이| < 0.01이면:
+        return null (변화 없음)
+    만약 차이 > 0이면:
+        return { 방향: "↑", 값: 차이, 색상: 빨강 }
+    그 외:
+        return { 방향: "↓", 값: |차이|, 색상: 초록 }
+ 
+// 5초마다 메트릭 수신 시 호출
+useEffect():
+    만약 현재메트릭이 존재하면:
+        증감 = 계산증감(현재메트릭, 이전메트릭)
+        이전메트릭 = 현재메트릭
+```
+ 
+---
+ 
+### 3.12 CPU 임계치 감지 알고리즘 (수도 코드)
+ 
+```
+상수 THRESHOLD = 80
+ 
+함수 렌더CpuChart(데이터):
+    각 데이터포인트에 대해:
+        만약 value >= THRESHOLD이면:
+            빨간영역에 포함
+        그 외:
+            파란영역에 포함
+ 
+    차트에 그리기:
+        파란 AreaChart (전체 데이터)
+        빨간 AreaChart (THRESHOLD 초과 데이터만)
+        빨간 점선 ReferenceLine (y = THRESHOLD)
+```
+ 
+---
+ 
+### 3.13 VM 자동 등록 알고리즘 (수도 코드)
+ 
+```
+함수 register-vms():
+    .env 파일에서 VM_B_IP, VM_C_IP, VM_D_IP 읽기
+ 
+    백엔드 헬스체크 통과할 때까지 대기:
+        GET /health 반복 호출 (2초 간격)
+ 
+    각 (alias, ip) 쌍에 대해:
+        만약 ip가 비어있으면:
+            건너뜀
+ 
+        기존VM목록 = GET /api/vms
+        만약 ip가 기존VM목록에 존재하면:
+            "이미 등록됨" 출력 후 건너뜀
+        그 외:
+            POST /api/vms { alias, local_ip: ip }
+            "등록 완료" 출력
+```
+ 
+---
+ 
+### 3.14 프론트엔드 컴포넌트 구조
+ 
 ```
 App
 └── Dashboard (메인 페이지)
