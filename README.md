@@ -473,6 +473,10 @@ App
 
 ![클래스 다이어그램](images/syspulse_class.png)
 
+### 3.16 순서도
+
+![순서도](images/syspulse_diagram.png)
+
 ---
 
 ## 4. 구현
