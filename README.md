@@ -469,6 +469,10 @@ App
     └── NetworkChart (네트워크 트래픽 Area 차트)
 ```
 
+### 3.15 클래스 다이어그램
+
+![클래스 다이어그램](images/syspulse_class.png)
+
 ---
 
 ## 4. 구현
