@@ -355,7 +355,7 @@ App
 
 #### 백엔드
 
-**Node.js + Express**를 이용해 REST API 서버를 직접 개발했다. React의 요청을 받아 Prometheus에 PromQL 쿼리를 보내고 결과를 가공하여 응답한다. **node-postgres(pg)**를 이용해 PostgreSQL과 연결했다.
+**Node.js + Express**를 이용해 REST API 서버를 직접 개발했다. React의 요청을 받아 Prometheus에 PromQL 쿼리를 보내고 결과를 가공하여 응답한다. node-postgres(pg)를 이용해 PostgreSQL과 연결했다.
 
 #### 모니터링 수집
 
